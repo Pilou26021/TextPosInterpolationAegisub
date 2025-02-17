@@ -2,7 +2,7 @@
 
 ## PLEASE REPORT BUGS YOU ENCOUNTER
 
-### Version : v1.01
+### Version : v1.1
 
 What do I need to use this?
 Was made on Aegisub 3.2.x, may work on different versions.
@@ -31,6 +31,13 @@ What does it do?
 It interpolates the text and position of the selected lines. The interpolation is done in a linear way, meaning that the text and position will change gradually over the number of frames you choose.
 
 ## Changelog
+
+### V1.1
+- Calculations of steps for minimum smoothness
+- Added algorithm to interpolate position
+See [this](https://easings.net) for more information on easing functions
+
++ Issue #1: Latency at the end of the interpolation
 
 ### v1.01
 - Preparation for future updates (Ease In, Ease In/Out, Ease Out)
