@@ -1,7 +1,7 @@
-script_name = "Text & Position Interpolation for Aegisub"
+script_name = "Text And Position Interpolation for Aegisub"
 script_description = "Adjusts text size over time between two selected subtitles"
 script_author = "PilouFace_"
-script_version = "1.0"
+script_version = "1.01"
 
 local haveDepCtrl,DependencyControl,depRec=pcall(require,"l0.DependencyControl")
 if haveDepCtrl then
@@ -18,22 +18,62 @@ function sizing_text(subtitles, selected_lines, active_line)
         aegisub.debug.out("Please select exactly two lines (start and end)!\n")
         return
     end
-
-
-    local line1 = subtitles[selected_lines[1]]
-    local line2 = subtitles[selected_lines[2]]
-
-
     
     local buttons, values = aegisub.dialog.display({
+        {class="label", label="Select the interpolation algorithm:", x=0, y=2, width=2, height=1},
+        {class="dropdown", name="interpolation", x=2, y=2, width=2, height=1, items={"Linear", "Ease In", "Ease Out", "Ease In-Out"}, value="Linear"},
+
         {class="label", label="Number of steps for transition:", x=0, y=0, width=2, height=1},
-        {class="intedit", name="steps", x=2, y=0, width=2, height=1, min=2, max=50, value=10}
+        {class="intedit", name="steps", x=2, y=0, width=2, height=1, min=2, max=50, value=10},
+        {class="label", label="Note: The more steps, the smoother the transition(use the number of frames for the smooth transition)", x=0, y=1, width=4, height=1}
     }, {"OK", "Cancel"})
 
     if buttons ~= "OK" then return end
     local steps = values.steps
 
+    if values.interpolation == "Linear" then
+        linearinterpolation(subtitles, selected_lines, active_line, steps)
+    else if values.interpolation == "Ease In" then
+        easeininterpolation(subtitles, selected_lines, active_line, steps)
+    else if values.interpolation == "Ease Out" then
+        easeoutinterpolation(subtitles, selected_lines, active_line, steps)
+    else if values.interpolation == "Ease In-Out" then
+        easeinoutinterpolation(subtitles, selected_lines, active_line, steps)
+    end
+    end
+    end
+    end
 
+    aegisub.set_undo_point("Text And Position Interpolation")
+end
+
+function extract_font_size(text)
+    local size = text:match("\\fs(%d+)")
+    return size and tonumber(size)
+end
+
+function extract_position(text)
+    local x, y = text:match("\\pos%(([%d%.]+),([%d%.]+)%)")
+    return {tonumber(x), tonumber(y)}
+end
+
+function update_position(text, x, y)
+    return text:gsub("\\pos%b()", string.format("\\pos(%.1f,%.1f)", x, y))
+end
+
+function update_font_size(text, new_size)
+    return text:gsub("\\fs%d+", "\\fs" .. new_size)
+end
+
+aegisub.register_macro(script_name, script_description, sizing_text)
+
+-- Interpolation algorithm
+
+-- Linear interpolation
+function linearinterpolation (subtitles, selected_lines, active_line, steps)
+    
+    local line1 = subtitles[selected_lines[1]]
+    local line2 = subtitles[selected_lines[2]]
 
     local start_size = extract_font_size(line1.text)
     local end_size = extract_font_size(line2.text)
@@ -77,28 +117,17 @@ function sizing_text(subtitles, selected_lines, active_line)
         subtitles.insert(selected_lines[1] + i, new_line)
         previous_end_time = new_line.end_time
     end
-
-
-    aegisub.set_undo_point("Sizing Text Effect")
 end
 
-function extract_font_size(text)
-    local size = text:match("\\fs(%d+)")
-    return size and tonumber(size)
+-- Ease In interpolation
+function easeininterpolation(subtitles, selected_lines, active_line, steps)
+    aegisub.debug.out("Ease In interpolation is not implemented yet.\n")
 end
 
-function extract_position(text)
-    local x, y = text:match("\\pos%(([%d%.]+),([%d%.]+)%)")
-    return {tonumber(x), tonumber(y)}
+function easeoutinterpolation(subtitles, selected_lines, active_line, steps)
+    aegisub.debug.out("Ease Out interpolation is not implemented yet.\n")
 end
 
-function update_position(text, x, y)
-    return text:gsub("\\pos%b()", string.format("\\pos(%.1f,%.1f)", x, y))
+function easeinoutinterpolation(subtitles, selected_lines, active_line, steps)
+    aegisub.debug.out("Ease In-Out interpolation is not implemented yet.\n")
 end
-
-function update_font_size(text, new_size)
-    return text:gsub("\\fs%d+", "\\fs" .. new_size)
-end
-
-
-aegisub.register_macro(script_name, script_description, sizing_text)
